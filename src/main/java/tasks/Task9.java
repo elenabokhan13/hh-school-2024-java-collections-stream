@@ -25,11 +25,9 @@ public class Task9 {
 
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
-  // Решение: добавила функцию skip, чтобы просто пропустить первый элемент стрима
+  // Решение: добавила функцию skip, чтобы просто пропустить первый элемент стрима и не удалять его за лишнее время.
+  // If вначале тоже не нужен, убрала его
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
-      return Collections.emptyList();
-    }
     return persons.stream().skip(1).map(Person::firstName).collect(Collectors.toList());
   }
 
@@ -41,28 +39,9 @@ public class Task9 {
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
-  // Решение: потерялся middleName, вернула его в логику. Заменила String на StringBuilder, т.к. такой код
-  // будет работать быстрее. String это immutable объект, и каждый раз при добавлении слова будет создаваться новый,
-  // а StringBuilder можно изменять добавляя новые слова, а уже в конце сконвертировать в строку
-
+  // Решение: потерялся middleName, вернула его в логику. Использовала String.join, чтобы объединить в строку
   public String convertPersonToString(Person person) {
-    StringBuilder builder = new StringBuilder();
-
-    if (person.secondName() != null) {
-      builder.append(person.secondName());
-      builder.append(" ");
-    }
-
-    if (person.firstName() != null) {
-      builder.append(person.firstName());
-      builder.append(" ");
-    }
-
-    if (person.middleName() != null) {
-      builder.append(person.middleName());
-      builder.append(" ");
-    }
-    return builder.toString();
+    return String.join(" ", person.firstName(), person.middleName(), person.secondName());
   }
 
   // словарь id персоны -> ее имя
@@ -73,24 +52,18 @@ public class Task9 {
   }
 
   // есть ли совпадающие в двух коллекциях персоны?
-  // Решение: можно было в изначальном коде просто сделать сразу return true, без ввода переменной,
-  // такой код работал бы быстрее, но все равно через О(n^2). Чтобы было быстрее, я стримами переложила
-  // коллекции в два сета с id персонами и нашла пересечение этих двух сетов
+  // Решение: сделала стрим и фильтрую, если ли такой же объект в другой коллекции
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    Set<Integer> persons1Set = persons1.stream().map(Person::id).collect(Collectors.toSet());
-    Set<Integer> persons2Set = persons2.stream().map(Person::id).collect(Collectors.toSet());
-    persons1Set.retainAll(persons2Set);
-
-    return persons1Set.size() > 0;
+    return persons1.stream().anyMatch(persons2::contains);
   }
 
   // Посчитать число четных чисел
   // Решение: создавать переменную, которая будет хранить состояние не лучший вараинт, в данном случае
   // в этом нет смысла, и это может привезти к ошибкам в том случае, если к этой переменной будет обращаться другой
   // метод, и ее зануление повлияет на результат.
-  // Я заменила выгрузку отфильтрованных цифр в список и return длины списка
+  // Я заменила выгрузку отфильтрованных цифр в список и return count найденных элементов
   public long countEven(Stream<Integer> numbers) {
-    return numbers.filter(num -> num % 2 == 0).toList().size();
+    return numbers.filter(num -> num % 2 == 0).count();
   }
 
   // Загадка - объясните почему assert тут всегда верен

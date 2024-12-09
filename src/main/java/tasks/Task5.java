@@ -4,10 +4,8 @@ import common.ApiPersonDto;
 import common.Person;
 import common.PersonConverter;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /*
 Задача 5
@@ -25,14 +23,6 @@ public class Task5 {
   }
 
   public List<ApiPersonDto> convert(List<Person> persons, Map<Integer, Integer> personAreaIds) {
-    Map<Person, Integer> personAreas = new LinkedHashMap<>();
-
-    for (Person curPerson : persons) {
-      Integer area = personAreaIds.get(curPerson.id());
-      personAreas.put(curPerson, area);
-    }
-
-    return personAreas.entrySet().stream().map(x -> personConverter.convert(x.getKey(), x.getValue()))
-        .collect(Collectors.toList());
+    return persons.stream().map(x -> personConverter.convert(x, personAreaIds.get(x.id()))).toList();
   }
 }

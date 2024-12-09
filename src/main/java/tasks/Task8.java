@@ -6,11 +6,8 @@ import common.PersonWithResumes;
 import common.Resume;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
@@ -29,15 +26,10 @@ public class Task8 {
   }
 
   public Set<PersonWithResumes> enrichPersonsWithResumes(Collection<Person> persons) {
-    Map<Integer, Person> personIdMap = persons.stream().collect(Collectors.toMap(Person::id, Function.identity()));
-    Set<Resume> resumes = personService.findResumes(personIdMap.keySet());
+    Set<Integer> personsId = persons.stream().map(Person::id).collect(toSet());
+    Set<Resume> resumes = personService.findResumes(personsId);
     Map<Integer, Set<Resume>> resumePersonIdMap = resumes.stream().collect(groupingBy(Resume::personId, toSet()));
-    Set<PersonWithResumes> result = new HashSet<>();
 
-    for (Integer curPersonId : personIdMap.keySet()) {
-      result.add(new PersonWithResumes(personIdMap.get(curPersonId), resumePersonIdMap.getOrDefault(curPersonId, Set.of())));
-    }
-
-    return result;
+    return persons.stream().map(x -> new PersonWithResumes(x, resumePersonIdMap.getOrDefault(x.id(), Set.of()))).collect(toSet());
   }
 }

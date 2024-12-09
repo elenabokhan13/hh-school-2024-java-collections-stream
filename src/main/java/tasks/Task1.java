@@ -4,10 +4,11 @@ import common.Person;
 import common.PersonService;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /*
 Задача 1
@@ -22,12 +23,11 @@ public class Task1 {
 
   /*
   Ассимптотика O(n):
-  - сначала я прохожусь один раз по списку с айдишниками, чтобы создать сет, это O(n);
-  - далее я прохожусь один раз по сету с Person, чтобы переложить их в нужном порядке в массив, это тоже O(n);
-  - далее я прохожусь один раз по массиву с Person, чтобы собрать финальный список, это тоже O(n).
+  - сначала я прохожусь один раз по сету с персонами и раскладываю их в мапу с ключом в виде айди персоны
+  - далее я прохожусь по списку с айди персон и в таком же порядке раскладываю персоны из мапы по айди персоны
 
-  Получается финально O(n) + O(n) + O(n) = 3*O(n), и по правилу ассимптотики мы опускаем константу, и остается O(n).
-  Все операции внутри циклов (добавление в конец списка, добавление/получение из массива) это О(1).
+  Получается финально O(n) + O(n) = 2*O(n), и по правилу ассимптотики мы опускаем константу, и остается O(n).
+  Все операции внутри циклов (добавление в конец списка, добавление/получение из списка) это О(1).
    */
   public Task1(PersonService personService) {
     this.personService = personService;
@@ -35,29 +35,13 @@ public class Task1 {
 
   public List<Person> findOrderedPersons(List<Integer> personIds) {
     Set<Person> persons = personService.findPersons(personIds);
-    Map<Integer, Integer> personIdsMap = new HashMap<>();
+    Map<Integer, Person> personsIdMap = persons.stream().collect(Collectors.toMap(Person::id, Function.identity()));
+    List<Person> result = new ArrayList<>(personIds.size());
 
-    for (int i = 0; i < personIds.size(); i++) {
-      personIdsMap.put(personIds.get(i), i);
+    for (Integer personId : personIds) {
+      result.add(personsIdMap.get(personId));
     }
 
-    Person[] curPersons = new Person[personIds.size()];
-
-    for (Person curPerson : persons) {
-      Integer curPersonId = curPerson.id();
-      int index = personIdsMap.getOrDefault(curPersonId, -1);
-
-      if (index != -1) {
-        curPersons[index] = curPerson;
-      }
-    }
-
-    List<Person> result = new ArrayList<>();
-    for (Person curPerson : curPersons) {
-      if (curPerson != null) {
-        result.add(curPerson);
-      }
-    }
     return result;
   }
 }

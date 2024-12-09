@@ -4,7 +4,6 @@ import common.Area;
 import common.Person;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -19,29 +18,23 @@ import java.util.stream.Collectors;
  */
 public class Task6 {
 
+
   public static Set<String> getPersonDescriptions(Collection<Person> persons,
                                                   Map<Integer, Set<Integer>> personAreaIds,
                                                   Collection<Area> areas) {
     Map<Integer, Area> areasIdMap = areas.stream().collect(Collectors.toMap(Area::getId, Function.identity()));
 
-    Set<String> results = new HashSet<>();
+    return persons.stream()
+        .flatMap(x -> personAreaIds.get(x.id()).stream()
+            .map(t -> Task6.getString(x.firstName(), areasIdMap.get(t).getName())))
+        .collect(Collectors.toSet());
+  }
 
-    for (Person curPerson : persons) {
-      Integer curPersonId = curPerson.id();
-      Set<Integer> curAreaIds = personAreaIds.get(curPersonId);
-
-      for (Integer curAreaId : curAreaIds) {
-        Area curArea = areasIdMap.get(curAreaId);
-
-        String result = curPerson.firstName() +
-            " " +
-            "-" +
-            " " +
-            curArea.getName();
-
-        results.add(result);
-      }
-    }
-    return results;
+  private static String getString(String personName, String areaName) {
+    return personName +
+        " " +
+        "-" +
+        " " +
+        areaName;
   }
 }
