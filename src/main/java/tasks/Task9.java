@@ -1,13 +1,14 @@
 package tasks;
 
 import common.Person;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -25,69 +26,58 @@ public class Task9 {
 
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
+  // Решение: добавила функцию skip, чтобы просто пропустить первый элемент стрима и не удалять его за лишнее время.
+  // If вначале тоже не нужен, убрала его
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
-      return Collections.emptyList();
-    }
-    persons.remove(0);
-    return persons.stream().map(Person::firstName).collect(Collectors.toList());
+    return persons.stream().skip(1).map(Person::firstName).collect(Collectors.toList());
   }
 
   // Зачем-то нужны различные имена этих же персон (без учета фальшивой разумеется)
+  // Решение: заменила на конструктор сета. Нет смысла делать стрим, когда мы можем просто использовать конструктор
+  // и передать туда нужную коллекцию
   public Set<String> getDifferentNames(List<Person> persons) {
-    return getNames(persons).stream().distinct().collect(Collectors.toSet());
+    return new HashSet<>(getNames(persons));
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
+  // Решение: потерялся middleName, вернула его в логику. Использовала stream joining, чтобы склеить имя
   public String convertPersonToString(Person person) {
-    String result = "";
-    if (person.secondName() != null) {
-      result += person.secondName();
-    }
-
-    if (person.firstName() != null) {
-      result += " " + person.firstName();
-    }
-
-    if (person.secondName() != null) {
-      result += " " + person.secondName();
-    }
-    return result;
+    return Stream.of(person.firstName(), person.middleName(), person.secondName())
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(" "));
   }
 
   // словарь id персоны -> ее имя
+  // Решение: заменила на стрим, который сразу выдает нужную мапу. Id персоны уникально, поэтому мы можем быть уверены,
+  // что не перепишем какое-то значение
   public Map<Integer, String> getPersonNames(Collection<Person> persons) {
-    Map<Integer, String> map = new HashMap<>(1);
-    for (Person person : persons) {
-      if (!map.containsKey(person.id())) {
-        map.put(person.id(), convertPersonToString(person));
-      }
-    }
-    return map;
+    return persons.stream().collect(Collectors.toMap(Person::id, Person::firstName, (a, b) -> a));
   }
 
   // есть ли совпадающие в двух коллекциях персоны?
+  // Решение: сделала два сета с персонами и смотрю их пересечение
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    boolean has = false;
-    for (Person person1 : persons1) {
-      for (Person person2 : persons2) {
-        if (person1.equals(person2)) {
-          has = true;
-        }
-      }
-    }
-    return has;
+    Set<Person> persons1Set = new HashSet<>(persons1);
+    Set<Person> persons2Set = new HashSet<>(persons2);
+    persons1Set.retainAll(persons2Set);
+
+    return persons1Set.size() > 0;
   }
 
   // Посчитать число четных чисел
+  // Решение: создавать переменную, которая будет хранить состояние не лучший вараинт, в данном случае
+  // в этом нет смысла, и это может привезти к ошибкам в том случае, если к этой переменной будет обращаться другой
+  // метод, и ее зануление повлияет на результат.
+  // Я заменила выгрузку отфильтрованных цифр в список и return count найденных элементов
   public long countEven(Stream<Integer> numbers) {
-    count = 0;
-    numbers.filter(num -> num % 2 == 0).forEach(num -> count++);
-    return count;
+    return numbers.filter(num -> num % 2 == 0).count();
   }
 
   // Загадка - объясните почему assert тут всегда верен
   // Пояснение в чем соль - мы перетасовали числа, обернули в HashSet, а toString() у него вернул их в сортированном порядке
+  // Решение: сет не хранит порядок добавления элементов, поэтому, когда мы добавили зашафленные числа в сет,
+  // их перепутанный порядок потерялся. Но при добавлении в сет, хэшкодом целого числа, которое мы добавляем,
+  // будет это самое число, поэтому они будут добавляться в память по порядку возрастания, и также выведутся в строку
   void listVsSet() {
     List<Integer> integers = IntStream.rangeClosed(1, 10000).boxed().collect(Collectors.toList());
     List<Integer> snapshot = new ArrayList<>(integers);

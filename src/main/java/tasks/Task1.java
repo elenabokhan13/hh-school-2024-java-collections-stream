@@ -2,9 +2,12 @@ package tasks;
 
 import common.Person;
 import common.PersonService;
-import java.util.Collections;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /*
 Задача 1
@@ -17,12 +20,22 @@ public class Task1 {
 
   private final PersonService personService;
 
+  /*
+  Ассимптотика O(n):
+  - сначала я прохожусь один раз по сету с персонами и раскладываю их в мапу с ключом в виде айди персоны
+  - далее я прохожусь по списку с айди персон и в таком же порядке раскладываю персоны из мапы по айди персоны
+
+  Получается финально O(n) + O(n) = 2*O(n), и по правилу ассимптотики мы опускаем константу, и остается O(n).
+  Все операции внутри циклов (добавление в конец списка, добавление/получение из списка) это О(1).
+   */
   public Task1(PersonService personService) {
     this.personService = personService;
   }
 
   public List<Person> findOrderedPersons(List<Integer> personIds) {
     Set<Person> persons = personService.findPersons(personIds);
-    return Collections.emptyList();
+    Map<Integer, Person> personsIdMap = persons.stream().collect(Collectors.toMap(Person::id, Function.identity()));
+
+    return personIds.stream().map(personsIdMap::get).toList();
   }
 }
