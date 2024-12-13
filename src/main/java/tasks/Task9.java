@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -39,22 +40,28 @@ public class Task9 {
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
-  // Решение: потерялся middleName, вернула его в логику. Использовала String.join, чтобы объединить в строку
+  // Решение: потерялся middleName, вернула его в логику. Использовала stream joining, чтобы склеить имя
   public String convertPersonToString(Person person) {
-    return String.join(" ", person.firstName(), person.middleName(), person.secondName());
+    return Stream.of(person.firstName(), person.middleName(), person.secondName())
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(" "));
   }
 
   // словарь id персоны -> ее имя
   // Решение: заменила на стрим, который сразу выдает нужную мапу. Id персоны уникально, поэтому мы можем быть уверены,
   // что не перепишем какое-то значение
   public Map<Integer, String> getPersonNames(Collection<Person> persons) {
-    return persons.stream().collect(Collectors.toMap(Person::id, Person::firstName));
+    return persons.stream().collect(Collectors.toMap(Person::id, Person::firstName, (a, b) -> a));
   }
 
   // есть ли совпадающие в двух коллекциях персоны?
-  // Решение: сделала стрим и фильтрую, если ли такой же объект в другой коллекции
+  // Решение: сделала два сета с персонами и смотрю их пересечение
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    return persons1.stream().anyMatch(persons2::contains);
+    Set<Person> persons1Set = new HashSet<>(persons1);
+    Set<Person> persons2Set = new HashSet<>(persons2);
+    persons1Set.retainAll(persons2Set);
+
+    return persons1Set.size() > 0;
   }
 
   // Посчитать число четных чисел

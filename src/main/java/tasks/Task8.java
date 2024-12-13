@@ -30,6 +30,8 @@ public class Task8 {
     Set<Resume> resumes = personService.findResumes(personsId);
     Map<Integer, Set<Resume>> resumePersonIdMap = resumes.stream().collect(groupingBy(Resume::personId, toSet()));
 
-    return persons.stream().map(x -> new PersonWithResumes(x, resumePersonIdMap.getOrDefault(x.id(), Set.of()))).collect(toSet());
+    return persons.stream()
+        .map(person -> new PersonWithResumes(person, resumePersonIdMap.getOrDefault(person.id(), Set.of())))
+        .collect(toSet());
   }
 }

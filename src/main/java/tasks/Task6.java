@@ -25,16 +25,12 @@ public class Task6 {
     Map<Integer, Area> areasIdMap = areas.stream().collect(Collectors.toMap(Area::getId, Function.identity()));
 
     return persons.stream()
-        .flatMap(x -> personAreaIds.get(x.id()).stream()
-            .map(t -> Task6.getString(x.firstName(), areasIdMap.get(t).getName())))
+        .flatMap(person -> personAreaIds.get(person.id()).stream()
+            .map(areaId -> Task6.getString(person, areasIdMap.get(areaId))))
         .collect(Collectors.toSet());
   }
 
-  private static String getString(String personName, String areaName) {
-    return personName +
-        " " +
-        "-" +
-        " " +
-        areaName;
+  private static String getString(Person person, Area area) {
+    return "%s - %s".formatted(person.firstName(), area.getName());
   }
 }
